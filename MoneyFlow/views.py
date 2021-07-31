@@ -14,7 +14,7 @@ class ProduseView(generics.ListAPIView):
 
 class AdaugaProdusView(APIView):
     def post(self, req):
-        nume: str = req.data['nume']
+        nume: str = req.data['nume'].capitalize()
         pret: float = float(req.data['pret'])
         data = req.data['data']
 
@@ -28,15 +28,42 @@ class AdaugaProdusView(APIView):
 
         return Response(req.data,status=status.HTTP_200_OK)
 
+class UltimaLunaView(APIView):
+    def get(self, req):
+        azi = datetime.date.today()
+        primaZiDinLuna = azi - datetime.timedelta(days= azi.day-1)
+        query = Produs.objects.filter(data__gte=primaZiDinLuna)
+        raspuns=adunaProduseRepetate(query)
 
-class SaptamanalView(generics.ListAPIView):
-    azi = datetime.date.today()
-    luniaAceasta = azi - datetime.timedelta(days= azi.weekday())
-    queryset = Produs.objects.filter(data__gte=luniaAceasta)
-    serializer_class = ProdusSerializer
+        return Response(raspuns ,status=status.HTTP_200_OK)
 
-class LunarView(generics.ListAPIView):
-    azi = datetime.date.today()
-    primaZiDinLuna = azi - datetime.timedelta(days= azi.day-1)
-    queryset = Produs.objects.filter(data__gte=primaZiDinLuna)
-    serializer_class = ProdusSerializer
+
+class UltimaSaptamanaView(APIView):
+    def get(self, req):
+        azi = datetime.date.today()
+        luniaAceasta = azi - datetime.timedelta(days= azi.weekday())
+        query = Produs.objects.filter(data__gte=luniaAceasta)
+        raspuns=adunaProduseRepetate(query)
+
+        return Response(raspuns ,status=status.HTTP_200_OK)
+
+#returneaza doar numele si pretul , nu si data
+def adunaProduseRepetate(query):
+    resp: dict = {}
+    raspuns = []
+    for record in query:
+        if record in resp:
+            resp[record.nume] += record.pret
+        else:
+            resp[record.nume] = record.pret
+
+    #pana aici raspunsul e de tip {produs1:pret1,produs2:pret2, ...}
+    #dar mie imi tb [{nume:"produs1",pret:"pret1"}, ...]
+
+    for k,v in resp.items():
+        raspuns.append({
+            "nume": k,
+            "pret": v,
+        })
+
+    return raspuns
