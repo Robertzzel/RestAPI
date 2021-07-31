@@ -5,7 +5,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 import datetime
 
-# Create your views here.
 
 class ProduseView(generics.ListAPIView):
     queryset = Produs.objects.all()
@@ -28,6 +27,7 @@ class AdaugaProdusView(APIView):
 
         return Response(req.data,status=status.HTTP_200_OK)
 
+
 class UltimaLunaView(APIView):
     def get(self, req):
         azi = datetime.date.today()
@@ -47,7 +47,26 @@ class UltimaSaptamanaView(APIView):
 
         return Response(raspuns ,status=status.HTTP_200_OK)
 
-#returneaza doar numele si pretul , nu si data
+
+class AnumitaLunaView(APIView):
+    def get(self,req,luna):
+        raspuns = []
+        primaZiDinLuna: datetime.date
+        ultimaZiDinLuna: datetime.date
+        primaZiDinLunaActuala = datetime.date.today().replace(day=1)
+
+        primaZiDinLuna = primaZiDinLunaActuala.replace(month=primaZiDinLunaActuala.month-luna)
+        ultimaZiDinLuna = primaZiDinLuna.replace(month=primaZiDinLuna.month+1) - datetime.timedelta(days=1)
+
+        print(primaZiDinLuna,ultimaZiDinLuna)
+
+        query = Produs.objects.filter(data__gte=primaZiDinLuna,data__lte=ultimaZiDinLuna)
+        queryProcesat = adunaProduseRepetate(query)
+
+        return Response(queryProcesat,status=status.HTTP_200_OK)
+
+
+# returneaza doar numele si pretul , nu si data
 def adunaProduseRepetate(query):
     resp: dict = {}
     raspuns = []

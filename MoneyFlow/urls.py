@@ -6,4 +6,5 @@ urlpatterns=[
     path('adauga-produs/',AdaugaProdusView.as_view()),
     path('produse-ultima_saptamana/', UltimaSaptamanaView.as_view()),
     path('produse-ultima_luna/', UltimaLunaView.as_view()),
+    path('produse-luna/<int:luna>/',AnumitaLunaView.as_view()),
 ]
